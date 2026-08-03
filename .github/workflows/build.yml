@@ -1,6 +1,6 @@
-YAML
+AML
 
-name: Build VS DTP WORD Executable Setup
+name: Build VS DTP WORD Executable
 
 on:
   push:
@@ -14,10 +14,7 @@ jobs:
 
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - name: Install MSVC Toolset & Windows SDK
-      uses: microsoft/setup-msbuild@v1.1
+      uses: actions/checkout@v4
 
     - name: Install Qt 6
       uses: jurplel/install-qt@v3
@@ -33,17 +30,12 @@ jobs:
     - name: Build C++ Executable
       run: cmake --build build --config Release
 
-    - name: Run windeployqt
+    - name: Deploy Qt Dependencies
       run: |
         windeployqt --release --compiler-runtime build/Release/VSDTPWord.exe
 
-    - name: Build Inno Setup Installer
-      uses: minyoms/setup-inno-setup@v1
+    - name: Upload Built Application Zip
+      uses: actions/upload-artifact@v4
       with:
-        filepath: installer/setup_script.iss
-
-    - name: Upload Installer EXE
-      uses: actions/upload-artifact@v3
-      with:
-        name: VS_DTP_WORD_Setup_Installer
-        path: installer/Output/VS_DTP_WORD_Setup_x64.exe
+        name: VS_DTP_WORD_Executable_x64
+        path: build/Release/
