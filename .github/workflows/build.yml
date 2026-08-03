@@ -1,0 +1,49 @@
+YAML
+
+name: Build VS DTP WORD Executable Setup
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Install MSVC Toolset & Windows SDK
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Install Qt 6
+      uses: jurplel/install-qt@v3
+      with:
+        version: '6.5.2'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+
+    - name: Configure CMake
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -G "Visual Studio 17 2022" -A x64
+
+    - name: Build C++ Executable
+      run: cmake --build build --config Release
+
+    - name: Run windeployqt
+      run: |
+        windeployqt --release --compiler-runtime build/Release/VSDTPWord.exe
+
+    - name: Build Inno Setup Installer
+      uses: minyoms/setup-inno-setup@v1
+      with:
+        filepath: installer/setup_script.iss
+
+    - name: Upload Installer EXE
+      uses: actions/upload-artifact@v3
+      with:
+        name: VS_DTP_WORD_Setup_Installer
+        path: installer/Output/VS_DTP_WORD_Setup_x64.exe
